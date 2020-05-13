@@ -1,0 +1,86 @@
+buildscript {
+    repositories {
+        maven { url 'https://plugins.gradle.org/m2' }
+    }
+}
+
+plugins {
+    id 'com.github.johnrengelman.shadow' version '2.0.4'
+}
+
+apply plugin: 'java'
+apply plugin: 'com.github.johnrengelman.shadow'
+
+def projectName = "GradleModules"
+def projectVersion = "1.0-SNAPSHOT"
+
+subprojects {
+
+    apply plugin: 'java'
+    apply plugin: 'maven'
+    apply plugin: 'com.github.johnrengelman.shadow'
+
+    group = 'io.github.superkoth'
+    version = projectVersion
+
+    sourceCompatibility = targetCompatibility = 1.8
+
+    each { subproject -> evaluationDependsOn(subproject.path) }
+
+    ext {
+        moduleVersion = projectVersion
+    }
+
+    tasks.withType(JavaCompile) {
+        options.encoding = 'UTF-8'
+    }
+
+    repositories {
+        mavenLocal()
+        mavenCentral()
+        maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
+        maven { url 'https://hub.spigotmc.org/nexus/content/groups/public/' }
+        maven { url 'https://jitpack.io/' }
+    }
+
+    dependencies {
+        compile('com.github.moltenjson:lightweight-moltenjson:2.5.3-SNAPSHOT') {
+            exclude module: 'gson'
+            exclude module: 'guava'
+        }
+        compile group: 'org.jetbrains', name: 'annotations', version: '16.0.1'
+    }
+
+    jar {
+        from '../LICENSE'
+    }
+
+    shadowJar {
+        dependencies {
+            include(dependency('com.github.moltenjson:lightweight-moltenjson'))
+            include(dependency('org.jetbrains:annotations'))
+        }
+        relocate 'net.moltenjson', 'io.github.superkoth.lib.json'
+    }
+}
+
+shadowJar {
+    dependencies {
+        include(dependency('io.github.superkothy:.*'))
+    }
+}
+
+task assembleJar(type: Jar, dependsOn: subprojects.tasks['classes']) {
+    archiveBaseName.set(projectName + "-" + projectVersion)
+    for (subproject in subprojects) {
+        from subproject.configurations.archives.allArtifacts.files.collect {
+            zipTree(it) // include all sub-projects in the final JAR
+        }
+    }
+}
+
+tasks.assembleJar.dependsOn tasks.shadowJar
+
+artifacts {
+    archives(assembleJar)
+}

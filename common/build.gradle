@@ -1,0 +1,13 @@
+dependencies {
+    compileOnly('org.spigotmc:spigot:1.14.4-R0.1-SNAPSHOT')
+}
+
+def version = project.version
+
+processResources {
+    from(sourceSets.main.resources.srcDirs) {
+        println "Version: " + version
+        expand 'pluginVersion': version
+        include 'plugin.yml'
+    }
+}

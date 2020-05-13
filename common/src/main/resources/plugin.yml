@@ -1,0 +1,9 @@
+name: GradleModules
+version: ${pluginVersion}
+description: A permissions plugin
+author: Reflxction
+website: https://superkoth.github.io
+
+main: io.github.superkoth.SimplePlugin
+
+api-version: "1.13"
