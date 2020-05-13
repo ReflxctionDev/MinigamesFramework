@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="GradleModules2 [shadowJar]" type="GradleRunConfiguration" factoryName="Gradle">
+  <configuration default="false" name="Build JAR" type="GradleRunConfiguration" factoryName="Gradle">
     <ExternalSystemSettings>
       <option name="executionName" />
       <option name="externalProjectPath" value="$PROJECT_DIR$" />
@@ -10,12 +10,14 @@
       </option>
       <option name="taskNames">
         <list>
-          <option value="shadowJar" />
+          <option value="build" />
         </list>
       </option>
       <option name="vmOptions" value="" />
     </ExternalSystemSettings>
     <GradleScriptDebugEnabled>true</GradleScriptDebugEnabled>
-    <method v="2" />
+    <method v="2">
+      <option name="RunConfigurationTask" enabled="true" run_configuration_name="GradleModules2 [shadowJar]" run_configuration_type="GradleRunConfiguration" />
+    </method>
   </configuration>
 </component>
