@@ -26,7 +26,7 @@ public class SimplePlugin extends JavaPlugin {
     @Override
     public void onEnable() {
         String p = Bukkit.getServer().getClass().getPackage().getName().contains("12") ? "legacy" : "modern";
-        System.out.println(new JsonBuilder().build());
+        System.out.println(new JsonBuilder().map("A", "B").build());
         try {
             simple = (ISimple) Class.forName("io.github.superkoth." + p + ".SimpleImpl").newInstance();
             simple.print();

@@ -17,7 +17,7 @@
     </ExternalSystemSettings>
     <GradleScriptDebugEnabled>true</GradleScriptDebugEnabled>
     <method v="2">
-      <option name="RunConfigurationTask" enabled="true" run_configuration_name="GradleModules2 [shadowJar]" run_configuration_type="GradleRunConfiguration" />
+      <option name="RunConfigurationTask" enabled="true" run_configuration_name="Build Shaded JARs" run_configuration_type="GradleRunConfiguration" />
     </method>
   </configuration>
 </component>

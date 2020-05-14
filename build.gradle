@@ -48,7 +48,7 @@ subprojects {
             exclude module: 'gson'
             exclude module: 'guava'
         }
-        compile group: 'org.jetbrains', name: 'annotations', version: '16.0.1'
+        compileOnly group: 'org.jetbrains', name: 'annotations', version: '16.0.1'
     }
 
     jar {
@@ -58,7 +58,7 @@ subprojects {
     shadowJar {
         dependencies {
             include(dependency('com.github.moltenjson:lightweight-moltenjson'))
-            include(dependency('org.jetbrains:annotations'))
+            // include(dependency('org.jetbrains:annotations'))
         }
         relocate 'net.moltenjson', 'io.github.superkoth.lib.json'
     }
