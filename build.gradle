@@ -1,3 +1,5 @@
+import org.apache.tools.ant.filters.ReplaceTokens
+
 buildscript {
     repositories {
         maven { url 'https://plugins.gradle.org/m2' }
@@ -5,13 +7,13 @@ buildscript {
 }
 
 plugins {
-    id 'com.github.johnrengelman.shadow' version '2.0.4'
+    id 'com.github.johnrengelman.shadow' version '5.2.0'
 }
 
 apply plugin: 'java'
 apply plugin: 'com.github.johnrengelman.shadow'
 
-def projectName = "GradleModules"
+def projectName = "MinigamesFramework"
 def projectVersion = "1.0-SNAPSHOT"
 
 subprojects {
@@ -38,42 +40,40 @@ subprojects {
     repositories {
         mavenLocal()
         mavenCentral()
+        maven { url 'https://repo.extendedclip.com/content/repositories/placeholderapi/' }
         maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
         maven { url 'https://hub.spigotmc.org/nexus/content/groups/public/' }
         maven { url 'https://jitpack.io/' }
     }
 
     dependencies {
-        compile('com.github.moltenjson:lightweight-moltenjson:2.5.3-SNAPSHOT') {
-            exclude module: 'gson'
-            exclude module: 'guava'
-        }
+        compileOnly 'me.clip:placeholderapi:2.10.9'
+        compileOnly 'com.github.ReflxctionDev:PluginLib:3'
+        compileOnly group: 'com.github.cryptomorin', name: 'XSeries', version: '7.6.1'
+        compileOnly group: 'com.google.code.gson', name: 'gson', version: '2.8.6'
         compileOnly group: 'org.jetbrains', name: 'annotations', version: '16.0.1'
+        compileOnly 'org.projectlombok:lombok:1.18.16'
+        annotationProcessor 'org.projectlombok:lombok:1.18.16'
     }
 
     jar {
         from '../LICENSE'
     }
 
-    shadowJar {
-        dependencies {
-            include(dependency('com.github.moltenjson:lightweight-moltenjson'))
-            // include(dependency('org.jetbrains:annotations'))
-        }
-        relocate 'net.moltenjson', 'io.github.superkoth.lib.json'
-    }
 }
 
-shadowJar {
-    dependencies {
-        include(dependency('io.github.superkothy:.*'))
+processResources {
+    from(sourceSets.main.resources.srcDirs) {
+        filter ReplaceTokens, tokens: [version: version]
     }
 }
 
 task assembleJar(type: Jar, dependsOn: subprojects.tasks['classes']) {
     archiveBaseName.set(projectName + "-" + projectVersion)
     for (subproject in subprojects) {
+        if (subproject.name == "registry-processor") continue
         from subproject.configurations.archives.allArtifacts.files.collect {
+            it = new File(it.parentFile, it.name.replace(".jar", "-all.jar"))
             zipTree(it) // include all sub-projects in the final JAR
         }
     }
@@ -84,3 +84,5 @@ tasks.assembleJar.dependsOn tasks.shadowJar
 artifacts {
     archives(assembleJar)
 }
+
+build.dependsOn shadowJar

@@ -1,5 +1,13 @@
+repositories {
+    maven { url 'http://maven.sk89q.com/artifactory/repo' }
+}
+
 dependencies {
     compileOnly('org.spigotmc:spigot:1.14.4-R0.1-SNAPSHOT')
+    compileOnly('com.sk89q.worldedit:worldedit-bukkit:6.1.4-SNAPSHOT') {
+        exclude module: 'bukkit'
+    }
+    compile('com.github.ReflxctionDev:PluginLib:3')
 }
 
 def version = project.version

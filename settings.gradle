@@ -1,4 +1,4 @@
-rootProject.name = 'GradleModules'
+rootProject.name = 'MinigamesFramework'
 
 include(
         'legacy',
