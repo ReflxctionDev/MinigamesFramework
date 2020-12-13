@@ -14,6 +14,8 @@ import org.bukkit.event.Listener;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import pluginlib.DependentJavaPlugin;
+import pluginlib.PluginLib;
+import pluginlib.Relocation;
 
 import java.io.*;
 import java.lang.annotation.*;
@@ -424,7 +426,27 @@ public abstract class MinigamePlugin extends DependentJavaPlugin {
         } catch (Throwable t) {
             MISSING_WE.set(true);
         }
-
+        PluginLib.builder()
+                .groupId("com.google.code.gson")
+                .artifactId("gson")
+                .version("2.8.6")
+                .relocate(new Relocation("com.google.gson", "io.github.revxrsal.minigames.libs.gson"))
+                .build()
+                .load(MinigamePlugin.class);
+        PluginLib.builder()
+                .groupId("com.github.cryptomorin")
+                .artifactId("XSeries")
+                .version("7.6.1")
+                .relocate(new Relocation("com.cryptomorin.xseries", "io.github.revxrsal.minigames.libs.xseries"))
+                .build()
+                .load(MinigamePlugin.class);
+        PluginLib.builder()
+                .groupId("com.esotericsoftware")
+                .artifactId("reflectasm")
+                .version("1.11.9")
+                .relocate(new Relocation("com.esotericsoftware.reflectasm", "io.github.revxrsal.minigames.libs.reflectasm"))
+                .build()
+                .load(MinigamePlugin.class);
     }
 
 }

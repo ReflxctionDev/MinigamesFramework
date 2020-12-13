@@ -1,9 +1,14 @@
 package io.github.revxrsal.minigames.chat;
 
+import com.comphenix.protocol.wrappers.EnumWrappers.ChatType;
+import com.comphenix.protocol.wrappers.WrappedChatComponent;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import io.github.revxrsal.minigames.packet.ChatPacket;
 import io.github.revxrsal.minigames.util.Chat;
 import org.bukkit.ChatColor;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
@@ -23,12 +28,14 @@ public class TextComponent {
     private final Click clickEvent;
 
     private transient final String asJson;
+    private final transient WrappedChatComponent component;
 
     private TextComponent(String text, Hover hoverEvent, Click clickEvent) {
         this.text = text;
         this.hoverEvent = hoverEvent;
         this.clickEvent = clickEvent;
         asJson = GSON.toJson(this);
+        component = WrappedChatComponent.fromJson(asJson);
     }
 
     @Override public String toString() {
@@ -41,6 +48,25 @@ public class TextComponent {
 
     public static String wrap(@NotNull TextComponent... components) {
         return Arrays.toString(components);
+    }
+
+    public void send(@NotNull CommandSender sender) {
+        if (!(sender instanceof Player)) {
+            sender.sendMessage(text);
+            return;
+        }
+        ChatPacket packet = new ChatPacket();
+        packet.setMessage(component);
+        packet.setChatType(ChatType.SYSTEM);
+        packet.sendPacket((Player) sender);
+    }
+
+    public void actionBar(@NotNull CommandSender sender) {
+        if (!(sender instanceof Player)) return;
+        ChatPacket packet = new ChatPacket();
+        packet.setMessage(component);
+        packet.setChatType(ChatType.GAME_INFO);
+        packet.sendPacket((Player) sender);
     }
 
     public static String fixColors(String e) {

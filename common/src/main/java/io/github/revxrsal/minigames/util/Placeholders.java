@@ -13,10 +13,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.text.NumberFormat;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.StringJoiner;
 import java.util.concurrent.TimeUnit;
 
 import static io.github.revxrsal.minigames.util.Placeholders.PlaceholderFiller.p;
@@ -59,7 +57,7 @@ public class Placeholders {
         void apply(T value, StrBuilder builder);
 
         static void p(StrBuilder builder, String placeholder, Object value) {
-            builder.replaceAll("{" + placeholder + "}", value.toString());
+            builder.replaceAll("%" + placeholder + "%", value.toString());
         }
     }
 
@@ -165,19 +163,29 @@ public class Placeholders {
         return thing + "s";
     }
 
-    private static final ImmutableMap<Class<?>, PlaceholderFiller> fillers;
-
-    static {
-        ImmutableMap.Builder<Class<?>, PlaceholderFiller> builder = new Builder<>();
+    public static void register(@NotNull Class<?> cl) {
         for (Field field : Placeholders.class.getDeclaredFields()) {
             if (!PlaceholderFiller.class.isAssignableFrom(field.getType())) continue;
             Class<?> type = ((Class<?>) ((ParameterizedType) field.getGenericType()).getActualTypeArguments()[0]);
             try {
-                builder.put(type, (PlaceholderFiller) field.get(null));
+                fillers.put(type, (PlaceholderFiller) field.get(null));
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
             }
         }
-        fillers = builder.build();
+    }
+
+    private static final Map<Class<?>, PlaceholderFiller> fillers = new HashMap<>();
+
+    static {
+        for (Field field : Placeholders.class.getDeclaredFields()) {
+            if (!PlaceholderFiller.class.isAssignableFrom(field.getType())) continue;
+            Class<?> type = ((Class<?>) ((ParameterizedType) field.getGenericType()).getActualTypeArguments()[0]);
+            try {
+                fillers.put(type, (PlaceholderFiller) field.get(null));
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }
