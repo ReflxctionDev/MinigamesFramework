@@ -9,7 +9,7 @@ dependencies {
     }
     compileOnly 'com.esotericsoftware:reflectasm:1.11.9'
     compileOnly group: "com.comphenix.protocol", name: "ProtocolLib", version: "4.5.0";
-    compile('com.github.ReflxctionDev:PluginLib:3')
+    compile('com.github.ReflxctionDev:PluginLib:1.2')
 }
 
 def version = project.version
