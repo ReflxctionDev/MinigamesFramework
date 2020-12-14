@@ -281,7 +281,7 @@ public abstract class MinigamePlugin {
      */
     @Target(ElementType.METHOD)
     @Retention(RetentionPolicy.RUNTIME)
-    protected @interface PreLoad {
+    public @interface PreLoad {
 
         /**
          * The priority of this method
@@ -297,7 +297,7 @@ public abstract class MinigamePlugin {
      */
     @Target(ElementType.METHOD)
     @Retention(RetentionPolicy.RUNTIME)
-    protected @interface InvokeLoad {
+    public @interface InvokeLoad {
 
         /**
          * The priority of this method
@@ -313,7 +313,7 @@ public abstract class MinigamePlugin {
      */
     @Target(ElementType.METHOD)
     @Retention(RetentionPolicy.RUNTIME)
-    protected @interface InvokeEnable {
+    public @interface InvokeEnable {
 
         /**
          * The priority of this method
@@ -329,7 +329,7 @@ public abstract class MinigamePlugin {
      */
     @Target(ElementType.METHOD)
     @Retention(RetentionPolicy.RUNTIME)
-    protected @interface InvokeDisable {
+    public @interface InvokeDisable {
 
         /**
          * The priority of this method
@@ -384,7 +384,7 @@ public abstract class MinigamePlugin {
      */
     @Target(ElementType.TYPE)
     @Retention(RetentionPolicy.RUNTIME)
-    protected @interface RuntimePlugins {
+    public @interface RuntimePlugins {
 
         DownloadPlugin[] value();
 
