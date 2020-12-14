@@ -110,7 +110,7 @@ public abstract class MinigamePlugin {
     private void call(Class<? extends Annotation> annotation) {
         Method priorityMethod = annotation.getDeclaredMethod("value");
         List<Method> methods = new ArrayList<>();
-        for (Method method : getClass().getDeclaredMethods()) {
+        for (Method method : plugin.getClass().getDeclaredMethods()) {
             Annotation ann = method.getAnnotation(annotation);
             if (ann == null) continue;
             if (method.isAnnotationPresent(annotation)) {
