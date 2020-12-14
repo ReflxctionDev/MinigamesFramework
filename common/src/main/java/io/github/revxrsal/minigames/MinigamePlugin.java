@@ -4,6 +4,9 @@ import com.google.gson.FieldNamingPolicy;
 import io.github.revxrsal.minigames.config.MappedConfiguration;
 import io.github.revxrsal.minigames.menu.InventoryUI;
 import io.github.revxrsal.minigames.message.message.MessageManager;
+import io.github.revxrsal.minigames.pluginlib.DependentJavaPlugin;
+import io.github.revxrsal.minigames.pluginlib.PluginLib;
+import io.github.revxrsal.minigames.pluginlib.Relocation;
 import io.github.revxrsal.minigames.util.FileManager;
 import io.github.revxrsal.minigames.util.Protocol;
 import lombok.SneakyThrows;
@@ -11,11 +14,10 @@ import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.event.Listener;
+import org.bukkit.plugin.PluginDescriptionFile;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import pluginlib.DependentJavaPlugin;
-import pluginlib.PluginLib;
-import pluginlib.Relocation;
 
 import java.io.*;
 import java.lang.annotation.*;
@@ -29,11 +31,13 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
+import java.util.logging.Logger;
 
 import static io.github.revxrsal.minigames.util.Utils.firstNotNull;
 import static java.io.File.separator;
+import static org.bukkit.Bukkit.getServer;
 
-public abstract class MinigamePlugin extends DependentJavaPlugin {
+public abstract class MinigamePlugin {
 
     private static MinigamePlugin instance;
     public static final AtomicBoolean DISABLE = new AtomicBoolean(false);
@@ -41,19 +45,24 @@ public abstract class MinigamePlugin extends DependentJavaPlugin {
     private static final String DEF_SEPARATOR = new String(new char[]{'/'});
 
     public static final ExecutorService THREAD_POOL = new ForkJoinPool();
-
     public static final ScheduledExecutorService SCHEDULED_SERVICE = Executors.newSingleThreadScheduledExecutor();
 
-    protected final FileManager fileManager = new FileManager(this);
+    protected final FileManager fileManager;
     protected static MessageManager messageManager;
+    protected final JavaPlugin plugin;
+    protected final MappedConfiguration configFile;
 
-    protected final MappedConfiguration configFile = MappedConfiguration
-            .fromEmbeddedFile(this, "config.yml")
-            .gsonBuilder(b -> b.setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE))
-            .enableCaseInsensitiveEnumSerialization()
-            .build();
+    public MinigamePlugin(JavaPlugin plugin) {
+        instance = this;
+        this.plugin = plugin;
+        fileManager = new FileManager(this);
+        configFile = MappedConfiguration
+                .fromEmbeddedFile(plugin, "config.yml")
+                .gsonBuilder(b -> b.setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE))
+                .enableCaseInsensitiveEnumSerialization()
+                .build();
+    }
 
-    @Override
     public final void onLoad() {
         call(PreLoad.class);
         if (!DISABLE.get()) {
@@ -120,7 +129,7 @@ public abstract class MinigamePlugin extends DependentJavaPlugin {
             if (!method.isAccessible()) method.setAccessible(true);
             if (async == null)
                 try {
-                    method.invoke(this);
+                    method.invoke(plugin);
                 } catch (InvocationTargetException | IllegalAccessException e) {
                     error("Failed to run callback method " + method.getName() + " in stage @" + annotation.getSimpleName());
                     e.getCause().printStackTrace();
@@ -128,7 +137,7 @@ public abstract class MinigamePlugin extends DependentJavaPlugin {
             else {
                 SCHEDULED_SERVICE.schedule(() -> {
                     try {
-                        method.invoke(MinigamePlugin.this);
+                        method.invoke(plugin);
                     } catch (IllegalAccessException e) {
                         e.printStackTrace();
                     } catch (InvocationTargetException e) {
@@ -140,7 +149,6 @@ public abstract class MinigamePlugin extends DependentJavaPlugin {
         }
     }
 
-    @Override
     public final void onEnable() {
         try {
             for (DownloadPlugin plugin : getClass().getAnnotationsByType(DownloadPlugin.class)) {
@@ -156,7 +164,7 @@ public abstract class MinigamePlugin extends DependentJavaPlugin {
             if (DISABLE.get()) {
                 getLogger().severe("Unsupported server protocol: 1." + Protocol.EXACT);
                 getLogger().severe("Please use one of the following: 1.8.8, 1.8.9, 1.12.2, 1.13.2, 1.14.X, 1.15.X for the plugin to function");
-                Bukkit.getPluginManager().disablePlugin(this);
+                Bukkit.getPluginManager().disablePlugin(plugin);
                 return;
             }
             if (requiresWorldEdit() && MISSING_WE.get()) {
@@ -171,7 +179,7 @@ public abstract class MinigamePlugin extends DependentJavaPlugin {
                     d = "https://dev.bukkit.org/projects/worldedit/files/latest";
                 }
                 getLogger().severe("No WorldEdit found. Please download WorldEdit (" + v + "), from " + d);
-                getServer().getPluginManager().disablePlugin(this);
+                getServer().getPluginManager().disablePlugin(plugin);
                 DISABLE.set(true);
                 return;
             }
@@ -193,11 +201,10 @@ public abstract class MinigamePlugin extends DependentJavaPlugin {
             }
             error("Failed to enable plugin. Error has been dumped to /" + getName() + "/crash.log. Please send the file over on our Discord server for support.");
             DISABLE.set(true);
-            Bukkit.getPluginManager().disablePlugin(this);
+            Bukkit.getPluginManager().disablePlugin(plugin);
         }
     }
 
-    @Override
     public final void onDisable() {
         if (DISABLE.get()) return;
         call(InvokeDisable.class);
@@ -244,7 +251,7 @@ public abstract class MinigamePlugin extends DependentJavaPlugin {
 
     protected void addListener(Object listener) {
         if (listener instanceof Listener)
-            Bukkit.getPluginManager().registerEvents((Listener) listener, this);
+            Bukkit.getPluginManager().registerEvents((Listener) listener, plugin);
     }
 
     @SuppressWarnings("RedundantTypeArguments")
@@ -260,29 +267,13 @@ public abstract class MinigamePlugin extends DependentJavaPlugin {
         return true;
     }
 
-    public static MinigamePlugin getPlugin() {
+    public static MinigamePlugin getInstance() {
         return instance;
     }
 
     public static void setPlugin(@NotNull MinigamePlugin plugin) {
         if (instance == null)
             instance = plugin;
-    }
-
-    /**
-     * Invoked when the plugin instance is created
-     */
-    @Target(ElementType.METHOD)
-    @Retention(RetentionPolicy.RUNTIME)
-    protected @interface PreInit {
-
-        /**
-         * The priority of this method
-         *
-         * @return The priority
-         */
-        int value();
-
     }
 
     /**
@@ -399,10 +390,6 @@ public abstract class MinigamePlugin extends DependentJavaPlugin {
 
     }
 
-    {
-        call(PreInit.class);
-    }
-
     public FileManager getFileManager() {
         return fileManager;
     }
@@ -415,6 +402,29 @@ public abstract class MinigamePlugin extends DependentJavaPlugin {
         return configFile;
     }
 
+    public static void load(@NotNull Class<? extends DependentJavaPlugin> type) {
+        PluginLib.builder()
+                .groupId("com.google.code.gson")
+                .artifactId("gson")
+                .version("2.8.6")
+                .relocate(new Relocation("com.google.gson", "io.github.revxrsal.minigames.libs.gson"))
+                .build()
+                .load(type);
+        PluginLib.builder()
+                .groupId("com.github.cryptomorin")
+                .artifactId("XSeries")
+                .version("7.6.1")
+                .relocate(new Relocation("com.cryptomorin.xseries", "io.github.revxrsal.minigames.libs.xseries"))
+                .build()
+                .load(type);
+        PluginLib.builder()
+                .groupId("com.esotericsoftware")
+                .artifactId("reflectasm")
+                .version("1.11.9")
+                .relocate(new Relocation("com.esotericsoftware", "io.github.revxrsal.minigames.libs.esoteric"))
+                .build()
+                .load(type);
+    }
 
     static {
         try {
@@ -426,27 +436,30 @@ public abstract class MinigamePlugin extends DependentJavaPlugin {
         } catch (Throwable t) {
             MISSING_WE.set(true);
         }
-        PluginLib.builder()
-                .groupId("com.google.code.gson")
-                .artifactId("gson")
-                .version("2.8.6")
-                .relocate(new Relocation("com.google.gson", "io.github.revxrsal.minigames.libs.gson"))
-                .build()
-                .load(MinigamePlugin.class);
-        PluginLib.builder()
-                .groupId("com.github.cryptomorin")
-                .artifactId("XSeries")
-                .version("7.6.1")
-                .relocate(new Relocation("com.cryptomorin.xseries", "io.github.revxrsal.minigames.libs.xseries"))
-                .build()
-                .load(MinigamePlugin.class);
-        PluginLib.builder()
-                .groupId("com.esotericsoftware")
-                .artifactId("reflectasm")
-                .version("1.11.9")
-                .relocate(new Relocation("com.esotericsoftware.reflectasm", "io.github.revxrsal.minigames.libs.reflectasm"))
-                .build()
-                .load(MinigamePlugin.class);
+    }
+
+    public void saveResource(@NotNull String resourcePath, boolean replace) {
+        plugin.saveResource(resourcePath, replace);
+    }
+
+    @NotNull public File getDataFolder() {
+        return plugin.getDataFolder();
+    }
+
+    @NotNull public PluginDescriptionFile getDescription() {
+        return plugin.getDescription();
+    }
+
+    @NotNull public Logger getLogger() {
+        return plugin.getLogger();
+    }
+
+    @NotNull public String getName() {
+        return plugin.getName();
+    }
+
+    public JavaPlugin getPlugin() {
+        return plugin;
     }
 
 }

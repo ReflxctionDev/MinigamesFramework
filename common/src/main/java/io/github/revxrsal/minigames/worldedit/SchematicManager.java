@@ -119,7 +119,7 @@ public abstract class SchematicManager {
             e.printStackTrace();
         }
         FACTORY = Preconditions.checkNotNull(factory, "Cannot find a valid WorldEdit plugin to use!");
-        MinigamePlugin.getPlugin().info("Using " + (factoryName = factory.getClass().getName()) + " as a WorldEdit adapter");
+        MinigamePlugin.getInstance().info("Using " + (factoryName = factory.getClass().getName()) + " as a WorldEdit adapter");
     }
 
     /**

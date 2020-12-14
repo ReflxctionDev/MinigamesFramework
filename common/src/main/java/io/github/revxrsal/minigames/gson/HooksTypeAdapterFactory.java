@@ -64,7 +64,7 @@ public class HooksTypeAdapterFactory implements TypeAdapterFactory {
             try {
                 method.invoke(instance);
             } catch (InvocationTargetException | IllegalAccessException e) {
-                MinigamePlugin.getPlugin().info("Failed to invoke " + label + " callback method in " + instance.getClass() + ":");
+                MinigamePlugin.getInstance().info("Failed to invoke " + label + " callback method in " + instance.getClass() + ":");
                 e.getCause().printStackTrace();
             }
         }

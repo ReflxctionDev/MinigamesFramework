@@ -34,18 +34,18 @@ public class Metadata<V> {
     public @Nullable V remove(@NotNull Metadatable metadatable) {
         V v = get(metadatable);
         if (v != null)
-            metadatable.removeMetadata(key, MinigamePlugin.getPlugin());
+            metadatable.removeMetadata(key, MinigamePlugin.getInstance().getPlugin());
         return v;
     }
 
     @Contract("_, null -> null; _, !null -> !null")
     public V set(@NotNull Metadatable metadatable, V value) {
-        metadatable.setMetadata(key, new FixedMetadataValue(MinigamePlugin.getPlugin(), value));
+        metadatable.setMetadata(key, new FixedMetadataValue(MinigamePlugin.getInstance().getPlugin(), value));
         return value;
     }
 
     public static <V> Metadata<V> of(@NotNull String key) {
-        return new Metadata<>(MinigamePlugin.getPlugin().getName().toLowerCase() + "." + key);
+        return new Metadata<>(MinigamePlugin.getInstance().getName().toLowerCase() + "." + key);
     }
 
 }
